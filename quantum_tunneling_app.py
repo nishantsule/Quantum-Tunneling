@@ -42,6 +42,9 @@ class Qtunnel:
         self.psir = psigauss * np.cos(self.k0 * self.lx)
         self.psii = psigauss * np.sin(self.k0 * self.lx)
         self.psimag = self.psir**2 + self.psii**2
+        self.psimaginit = self.psimag
+        self.psirinit = self.psir
+        self.psiiinit = self.psii
         # fdtd update coefficients
         self.c1 = sc.hbar * self.dt / (2.0 * sc.m_e * self.dx**2)
         self.c2 = self.dt / sc.hbar
@@ -60,7 +63,7 @@ class Qtunnel:
 
     # Update plots
     def update_plots(self, r12):
-        r12.data_source.data['y'] = self.psimag / np.amax(self.psimag)    
+        r12.data_source.data['y'] = self.psimag / np.amax(self.psimaginit)    
 
 
 # Arrays for plotting
@@ -103,6 +106,12 @@ def modify_doc(doc):
     psi_spread = Slider(title='Wavefunction Spread (Angstrom)', value=0.8, start=0.3, end=1.0, step=0.1)
     startbutton = Button(label='Start', button_type='success')
     textdisp = Div(text='''<b>Note:</b> Wait for simulation  to stop before pressing buttons.''')
+    texttitle = Div(text='''<b>QUANTUM TUNNELING</b>''', width=1000)
+    textdesc = Div(text='''This application simulates quantum tunneling of an electron across a potential barrier 
+                           by solving the Schrodinger's equation using the finite-difference time-domain method.
+                           You can change the height and width of the barrier, as well as the energy and spread
+                           of the electron to see how it would affect the probability of tunneling.''', width=1000)
+    textrel = Div(text='''Learn more about quantum mechanics especially in the context of quantum computing in <b>ES 170</b>''', width=1000)
 
     def run_qt_sim(event):
     
@@ -139,9 +148,9 @@ def modify_doc(doc):
         r23.data_source.data['x'] = qt.lx / sc.value('Angstrom star')
         r24.data_source.data['x'] = qt.lx / sc.value('Angstrom star')
         r21.data_source.data['y'] = qt.Vx / np.amax(qt.Vx)
-        r22.data_source.data['y'] = qt.psimag / np.amax(qt.psimag)
-        r23.data_source.data['y'] = qt.psir / np.amax(qt.psir)
-        r24.data_source.data['y'] = qt.psii / np.amax(qt.psii) 
+        r22.data_source.data['y'] = qt.psimag / np.amax(qt.psimaginit)
+        r23.data_source.data['y'] = qt.psir / np.amax(qt.psirinit)
+        r24.data_source.data['y'] = qt.psii / np.amax(qt.psiiinit) 
         r11.data_source.data['x'] = qt.lx / sc.value('Angstrom star')
         r12.data_source.data['x'] = qt.lx / sc.value('Angstrom star')
         r11.data_source.data['y'] = qt.Vx / np.amax(qt.Vx)
@@ -157,14 +166,14 @@ def modify_doc(doc):
         r33.data_source.data['x'] = qt.lx / sc.value('Angstrom star')
         r34.data_source.data['x'] = qt.lx / sc.value('Angstrom star')
         r31.data_source.data['y'] = qt.Vx / np.amax(qt.Vx)
-        r32.data_source.data['y'] = qt.psimag / np.amax(qt.psimag)
-        r33.data_source.data['y'] = qt.psir / np.amax(qt.psir)
-        r34.data_source.data['y'] = qt.psii / np.amax(qt.psii) 
+        r32.data_source.data['y'] = qt.psimag / np.amax(qt.psimaginit)
+        r33.data_source.data['y'] = qt.psir / np.amax(qt.psirinit)
+        r34.data_source.data['y'] = qt.psii / np.amax(qt.psiiinit) 
 
     # Setup callbacks
     startbutton.on_event(ButtonClick, run_qt_sim)
-    doc.add_root(column(row(barrier_height, barrier_width, textdisp), row(electron_energy, psi_spread, startbutton),
-                 row(p1, column(p2, p3)))) 
+    doc.add_root(column(texttitle, textdesc, row(barrier_height, barrier_width, textdisp), 
+                 row(electron_energy, psi_spread, startbutton), row(p1, column(p2, p3)), textrel)) 
 
 server = Server({'/': modify_doc}, num_procs=1)
 server.start()
